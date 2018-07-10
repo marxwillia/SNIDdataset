@@ -11,7 +11,6 @@ def loadDataset(pathdir, snlist):
         lines = f.readlines()
         f.close()
     for sn in lines:
-        print sn
         filename = sn.strip()
         snname = sn.strip().split('.')[0]
         snidObj = snid.SNIDsn()
