@@ -99,7 +99,20 @@ class SNIDsn:
 
         wvl = np.loadtxt(lnwfile, skiprows=phase_line_ind + 1, usecols=0)
         self.wavelengths = wvl
-        lnwdtype = [('Ph'+str(ph), 'f4') for ph in self.phases]
+        lnwdtype = []
+        colnames = []
+        for ph in self.phases:
+            colname = 'Ph'+str(ph)
+            if colname in colnames:
+                colname = colname + 'v1'
+            while(colname in colnames):
+                count = 2
+                colname = colname[0:-2] + 'v'+str(count)
+                count = count + 1
+            colnames.append(colname)
+            dt = (colname, 'f4')
+            lnwdtype.append(dt)
+        #lnwdtype = [('Ph'+str(ph), 'f4') for ph in self.phases]
         data = np.loadtxt(lnwfile, dtype=lnwdtype, skiprows=phase_line_ind + 1)
         self.data = data
 
