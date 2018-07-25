@@ -1,7 +1,10 @@
+from __future__ import division
 import numpy as np
 import pickle
-
-
+from scipy.interpolate import interp1d
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set_color_codes('colorblind')
 
 
 
@@ -56,6 +59,24 @@ Convert tuple type designation from SNID to string.
     return sntype, snsubtype
 
 
+def largeGapsInRange(gaps, minwvl, maxwvl, maxgapsize):
+    """
+Given a list of gaps, min and max wavelengths, and a maximum acceptable gap size,\
+returns a boolean which is True if a gap larger than maximum acceptable size \
+intersects the specified wavelength range. 
+     """
+    gapInRange = False
+    for gap in gaps:
+        gapStart = gap[0]
+        gapEnd = gap[1]
+        gapsize = gapEnd - gapStart
+        if maxgapsize > gapsize:
+            continue
+        else:
+            if gapStart < minwvl and gapEnd > maxwvl: gapInRange = True
+            if gapStart > minwvl and gapStart < maxwvl: gapInRange = True
+            if gapEnd > minwvl and gapEnd < maxwvl: gapInRange = True
+    return gapInRange
 
 
 class SNIDsn:
@@ -178,6 +199,87 @@ a certain wavelength. This method replaces all 0.0 values with NaN.
 Returns spectra structured array column names for the user.
         """
         return self.data.dtype.names
+
+
+    def findGaps(self, phase):
+        """
+Returns a list of all the gaps present in the spectrum for the given phase.
+        """
+        spec = self.data[phase]
+        wvl = self.wavelengths
+        nanind = np.argwhere(np.isnan(spec)).flatten()
+        nanwvl = wvl[np.isnan(spec)]
+        gaps = []
+        gapStartInd = nanind[0]
+        gapStartWvl = nanwvl[0]
+        for i in range(0,len(nanind) - 0):
+            ind = nanind[i]
+            if ind == nanind[-1]:
+                gap = (gapStartWvl, wvl[ind])
+                gaps.append(gap)
+                break
+            nextInd = nanind[i + 1]
+            if ind +1 != nextInd:
+                gap = (gapStartWvl, wvl[ind])
+                gaps.append(gap)
+                gapStartInd = nextInd
+                gapStartWvl = wvl[nextInd]
+        return gaps
+    
+    def getInterpRange(self, minwvl, maxwvl, phase):
+        """
+Returns the wavelength range needed for interpolating out gaps. Returned \
+range encloses the range specified by min and max wvl. Does not assume \
+anything about size of the gaps inside the user specified wvl range. \
+Exits with assert error if no finite values exist on one of the sides \
+of the user specified wvl range.
+        """
+        wavelengths = self.wavelengths
+        spec = self.data[phase]
+        wv = wavelengths[np.logical_and(wavelengths > minwvl, wavelengths < maxwvl)]
+        wvStart = wv[0]
+        wvEnd = wv[-1]
+        wvFinite = wavelengths[np.logical_not(np.isnan(spec))]
+        startmsk = wvFinite < wvStart
+        endmsk = wvFinite > wvEnd
+        assert len(wvFinite[startmsk]) > 0, "no finite wvl values before %f"%(wvStart)
+        assert len(wvFinite[endmsk]) > 0, "no finite wvl values after %f"%(wvEnd)
+        wvStartFinite = wvFinite[startmsk][np.argmin(np.abs(wvFinite[startmsk] - wvStart))]
+        wvEndFinite = wvFinite[endmsk][np.argmin(np.abs(wvFinite[endmsk] - wvEnd))]
+        return wvStartFinite, wvEndFinite 
+
+
+
+
+
+    def interp1dSpec(self, phase, minwvl, maxwvl, plot=False):
+        """
+Linearly interpolates any gaps in the spectrum specified by phase, in the wvl range \
+specified by the user. Default behavior is to not check for gaps. It is up to the user to determine \
+whether large gaps exist using the module function SNIDsn.largeGapsInRange().
+        """
+        wvlmsk = np.logical_and(self.wavelengths > minwvl, self.wavelengths < maxwvl)
+        specRange = self.data[phase][wvlmsk]
+        wvlRange = self.wavelengths[wvlmsk]
+        rangeFiniteMsk = np.isfinite(specRange)
+        interp_fn = interp1d(wvlRange[rangeFiniteMsk], specRange[rangeFiniteMsk])
+        interpSpecRange = interp_fn(wvlRange)
+
+        self.data[phase][wvlmsk] = interpSpecRange
+
+        if plot:
+            fig = plt.figure(figsize=(15,5))
+            plt.plot(self.wavelengths, self.data[phase], 'r')
+            plt.plot(wvlRange, specRange)
+            return fig
+        return
+
+
+
+
+
+
+
 
     def save(self, path='./'):
         """
