@@ -47,6 +47,13 @@ def datasetPhaseDict(dataset):
         phaseinfo[snname]=phases
     return phaseinfo
 
+def numSpec(dataset):
+    numSpec = 0
+    for snname in dataset.keys():
+        snobj = dataset[snname]
+        numSpec = numSpec + len(snobj.getSNCols())
+    return numSpec
+
 def snidsetNAN(dataset):
     """
 Replaces 0.0 placeholder for missing spectrum data with NaN for all SNe in dataset.
