@@ -259,8 +259,11 @@ phase from the list of phases.
             nm = ndtype[0]
             ndarr[:,i] = self.data[nm]
         newstructarr = np.array([tuple(row.tolist()) for row in ndarr], dtype=newdtype)
-        newphases = self.phases.tolist()
-        newphases.remove(float(colname[2:]))
+        rmInd = np.where(np.array(self.getSNCols()) == colname)[0][0]
+        newphases = []
+        for i in range(len(self.phases)):
+            if i != rmInd:
+                newphases.append(self.phases[i])
         self.phases = np.array(newphases)
         self.data = newstructarr
         return
@@ -338,11 +341,11 @@ of the user specified wvl range.
 
     def interp1dSpec(self, phase, minwvl, maxwvl, plot=False):
         """
-Linearly interpolates any gaps in the spectrum specified by phase, in the wvl range \
+Linearly interpolates any gaps in the spectrum specified by phase, in the wvl range (inclusive of endpoints) \
 specified by the user. Default behavior is to not check for gaps. It is up to the user to determine \
 whether large gaps exist using the module function SNIDsn.largeGapsInRange().
         """
-        wvlmsk = np.logical_and(self.wavelengths > minwvl, self.wavelengths < maxwvl)
+        wvlmsk = np.logical_and(self.wavelengths >= minwvl, self.wavelengths <= maxwvl)
         specRange = self.data[phase][wvlmsk]
         wvlRange = self.wavelengths[wvlmsk]
         rangeFiniteMsk = np.isfinite(specRange)
