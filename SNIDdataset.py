@@ -54,6 +54,17 @@ def numSpec(dataset):
         numSpec = numSpec + len(snobj.getSNCols())
     return numSpec
 
+def preprocess(dataset):
+    """
+Preprocesses all spectra.
+    """
+    for snname in dataset.keys():
+        snobj = dataset[snname]
+        colnames = snobj.getSNCols()
+        for col in colnames:
+            snobj.preprocess(col)
+    return
+
 def snidsetNAN(dataset):
     """
 Replaces 0.0 placeholder for missing spectrum data with NaN for all SNe in dataset.

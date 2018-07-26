@@ -235,6 +235,15 @@ phaseType, wavelengths, data, type, subtype.
         self.continuum = continuum
         return
 
+    def preprocess(self, phasekey):
+        """
+Zeros the mean and scales std to 1 for the spectrum indicated.
+        """
+        specMean = np.mean(self.data[phasekey])
+        specStd = np.std(self.data[phasekey])
+        self.data[phasekey] = (self.data[phasekey] - specMean)/specStd
+        return
+
     def wavelengthFilter(self, wvlmin, wvlmax):
         """
 Filters the wavelengths to a user specified range, and adjusts the spectra data\
