@@ -2,12 +2,12 @@ from __future__ import division
 import numpy as np
 import SNIDsn as snid
 import matplotlib.pyplot as plt
-
+from collections import OrderedDict
 
 
 
 def loadDataset(pathdir, snlist):
-    dataset = dict()
+    dataset = OrderedDict()
     with open(snlist) as f:
         lines = f.readlines()
         f.close()
