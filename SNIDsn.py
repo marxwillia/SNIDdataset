@@ -216,8 +216,8 @@ phaseType, wavelengths, data, type, subtype.
             colname = 'Ph'+str(ph)
             if colname in colnames:
                 colname = colname + 'v1'
+            count = 2
             while(colname in colnames):
-                count = 2
                 colname = colname[0:-2] + 'v'+str(count)
                 count = count + 1
             colnames.append(colname)
