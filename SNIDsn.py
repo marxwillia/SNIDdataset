@@ -4,6 +4,8 @@ import pickle
 import scipy
 import scipy.stats as st
 import scipy.optimize as opt
+from scipy import interpolate
+from scipy.interpolate import CubicSpline
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -157,7 +159,46 @@ def smooth(wvl, flux, cut_vel):
 
     return w_smoothed, f_smoothed, sep_vel
 
+def knot_meanflux_list(cont_header):
+    knot_meanflux_pair_list = []
+    for i in range(int(len(cont_header[1:])/2)):
+        nknot = cont_header[1:][2*i]
+        logfmean = cont_header[1:][2*i + 1]
+        pair = (nknot, logfmean)
+        knot_meanflux_pair_list.append(pair)
+    return knot_meanflux_pair_list
 
+def knot_dict(cont):
+    d = dict()
+    for row in cont:
+        key = row[0]
+        xyknot_list = []
+        for i in range(int(len(row[1:])/2)):
+            xknot = row[1:][2*i]
+            yknot = row[1:][2*i + 1]
+            pair = (xknot, yknot)
+            xyknot_list.append(pair)
+        d[int(key)] = xyknot_list
+    return d
+
+def snid_wvl_axis():
+    nw = 1024
+    w0 = 2500
+    w1 = 10000
+    dwlog = np.log(w1/w0)/nw
+    wlog = w0*np.exp(np.arange(nw+1)*dwlog)
+    dwbin = np.diff(wlog)
+    new_wlog = []
+    for i in range(nw):
+        el = 0.5*(wlog[i]+wlog[i+1])
+        new_wlog.append(el)
+    new_wlog = np.array(new_wlog)
+    return new_wlog, dwbin, dwlog
+
+def convert_xknot_wvl(xknot, nw, wvl):
+    pix = np.arange(nw)+1
+    wave = np.interp(xknot,pix,wvl)
+    return wave
 
 class SNIDsn:
     def __init__(self):
@@ -224,13 +265,15 @@ phaseType, wavelengths, data, type, subtype.
             dt = (colname, 'f4')
             lnwdtype.append(dt)
         #lnwdtype = [('Ph'+str(ph), 'f4') for ph in self.phases]
+        #print lines[phase_line_ind+1]
         data = np.loadtxt(lnwfile, dtype=lnwdtype, skiprows=phase_line_ind + 1, usecols=range(1,len(self.phases) + 1))
         self.data = data
 
         continuumcols = len(lines[1].strip().split())
         continuum = np.ndarray((phase_line_ind - 1,continuumcols))
-        for ind in np.arange(1,phase_line_ind - 1):
+        for ind in np.arange(1,phase_line_ind - 0):
             cont_line = lines[ind].strip().split()
+            #print cont_line
             continuum[ind - 1] = np.array([float(x) for x in cont_line])
         self.continuum = continuum
         return
@@ -243,6 +286,82 @@ Zeros the mean and scales std to 1 for the spectrum indicated.
         specStd = np.std(self.data[phasekey])
         self.data[phasekey] = (self.data[phasekey] - specMean)/specStd
         return
+
+    def restoreContinuum(self, verbose=False, spl_a_ind=0, spl_b_ind=-1):
+        """
+Restores the SNID continuum.
+Arguments:
+    knotmode -- ('wvl', 'pix') whether to compute knot values in wavelength or pixel units.
+        """
+        continuum_header = self.continuum[0]
+        continuum = self.continuum[1:]
+        if verbose: 
+            print "continuum lines"
+            print continuum
+        nknot_mean_list = knot_meanflux_list(continuum_header)
+        if verbose: 
+            print "nknot mean list"
+            print nknot_mean_list
+        xy_knot_dict = knot_dict(continuum)
+        if verbose: print xy_knot_dict
+        wvl, dwbin, dwlog = snid_wvl_axis()
+        data_unflat = []
+        for nspec_ind in range(self.header['Nspec']):
+            spline_x = []
+            spline_y = []
+            spline_deg = 3
+            num_splines_spec = int(nknot_mean_list[nspec_ind][0])
+            if verbose:
+                print "num splines for this spectrum"
+                print num_splines_spec
+            for spline_ind in np.array(xy_knot_dict.keys())[:num_splines_spec]:
+                pair = xy_knot_dict[spline_ind][nspec_ind]
+                if verbose: 
+                    print "knot pair"
+                    print pair
+                xknot = pair[0]
+                yknot = pair[1]
+                xknot = np.power(10,xknot)
+                yknot = np.power(10,yknot)*np.power(10,nknot_mean_list[nspec_ind][1])
+                spline_x.append(xknot)
+                spline_y.append(yknot)
+                if verbose:
+                    print "xknot, yknot" 
+                    print xknot, yknot
+            spline_x = np.array(spline_x)
+            spline_x_wvl = np.array([convert_xknot_wvl(x,1024,wvl) for x in spline_x])
+            spline_y = np.array(spline_y)
+            if verbose:
+                print "splines"
+                print spline_x
+                print spline_x_wvl
+                print spline_y
+                print spline_deg
+            msk = np.logical_and(wvl >= spline_x_wvl[spl_a_ind], wvl <= spline_x_wvl[spl_b_ind])
+            cubicspline = CubicSpline(spline_x_wvl, np.log10(spline_y))
+            y = cubicspline(wvl)
+            if verbose:
+                print "spline eval" 
+                print y
+                print np.power(10,y)[1]
+            unflat = []
+            for i in range(len(y)):
+                phkey = self.data.dtype.names[nspec_ind]
+                newf = (self.data[phkey][i]+1)*np.power(10,y[i])
+                #newf = (lnw_dat[i,1]+1)*np.power(10,y[i])
+                unflat.append(newf)
+            if verbose:
+                print "unflat"
+                print unflat[0:10]
+            unflat = np.array(unflat)
+            zeromsk = np.logical_or(wvl < spline_x_wvl[spl_a_ind], wvl > spline_x_wvl[spl_b_ind])
+            unflat[zeromsk] = 0.0
+            unflat = unflat/dwbin/np.mean(unflat[msk]/dwbin[msk])
+            data_unflat.append(unflat)
+        self.data_unflat = np.array(data_unflat).T
+        return
+
+        
 
     def wavelengthFilter(self, wvlmin, wvlmax):
         """
