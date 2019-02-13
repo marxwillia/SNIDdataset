@@ -146,7 +146,14 @@ def choosePhaseType(dataset, phtype):
     for key in dataset.keys():
         sn_obj = dataset[key]
         if sn_obj.phaseType != phtype:
-            sn_obj.deleteSN(dataset, key)
+            deleteSN(dataset, key)
+    return
+
+def removeSubType(dataset, subtypename):
+    for key in dataset.keys():
+        sn_obj = dataset[key]
+        if sn_obj.subtype == subtypename:
+            deleteSN(dataset, key)
     return
 
 def filterPhases(dataset, phaseRangeList, uniquePhaseFlag):

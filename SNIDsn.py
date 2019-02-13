@@ -34,7 +34,7 @@ Convert tuple type designation from SNID to string.
         if subtp == 4:
             sntype = 'IIb'
             snsubtype = ''
-        if subtp == 5: snsubtype = 'norm'
+        if subtp == 5: snsubtype = 'Ibn'
         else: snsubtype = ''
     if tp == 3:
         sntype = 'Ic'
