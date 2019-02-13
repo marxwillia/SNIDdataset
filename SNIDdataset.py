@@ -142,6 +142,13 @@ Plots all spectra in the dataset.
             count = count + 1
     return fig
 
+def choosePhaseType(dataset, phtype):
+    for key in dataset.keys():
+        sn_obj = dataset[key]
+        if sn_obj.phaseType != phtype:
+            sn_obj.deleteSN(dataset, key)
+    return
+
 def filterPhases(dataset, phaseRangeList, uniquePhaseFlag):
     """
 User can specify a list of phase ranges of the form [(minPhase1, maxPhase1), (minPhase2, maxPhase2), ...]\
