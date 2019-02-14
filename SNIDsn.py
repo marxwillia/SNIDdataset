@@ -19,48 +19,80 @@ Convert tuple type designation from SNID to string.
     """
     if tp == 1:
         sntype = 'Ia'
-        if subtp == 2: snsubtype = 'norm'
-        if subtp == 3: snsubtype = '91T'    
-        if subtp == 4: snsubtype = '91bg'
-        if subtp == 5: snsubtype = 'csm'
-        if subtp == 6: snsubtype = 'pec'
-        if subtp == 7: snsubtype = '99aa'
-        if subtp == 8: snsubtype = '02cx'
-        else: snsubtype = ''
-    if tp == 2:
+        if subtp == 2: 
+            snsubtype = 'norm'
+        elif subtp == 3: 
+            snsubtype = '91T'    
+        elif subtp == 4: 
+            snsubtype = '91bg'
+        elif subtp == 5: 
+            snsubtype = 'csm'
+        elif subtp == 6: 
+            snsubtype = 'pec'
+        elif subtp == 7: 
+            snsubtype = '99aa'
+        elif subtp == 8: 
+            snsubtype = '02cx'
+        else: 
+            snsubtype = ''
+    elif tp == 2:
         sntype = 'Ib'
-        if subtp == 2: snsubtype = 'norm'
-        if subtp == 3: snsubtype = 'pec'
-        if subtp == 4:
+        if subtp == 2: 
+            snsubtype = 'norm'
+        elif subtp == 3: 
+            snsubtype = 'pec'
+        elif subtp == 4:
             sntype = 'IIb'
             snsubtype = ''
-        if subtp == 5: snsubtype = 'Ibn'
-        else: snsubtype = ''
-    if tp == 3:
+        elif subtp == 5: 
+            snsubtype = 'Ibn'
+        elif subtp == 6:
+            snsubtype = 'Ca'
+        else: 
+            snsubtype = ''
+    elif tp == 3:
         sntype = 'Ic'
-        if subtp == 2: snsubtype = 'norm'
-        if subtp == 3: snsubtype = 'pec'
-        if subtp == 4:
+        if subtp == 2: 
+            snsubtype = 'norm'
+        elif subtp == 3: 
+            snsubtype = 'pec'
+        elif subtp == 4:
             sntype = 'IcBL'
             snsubtype = ''
-        else: snsubtype = ''
-    if tp == 4:
+        elif subtp == 5:
+            snsubtype = 'SL'
+        else: 
+            snsubtype = ''
+    elif tp == 4:
         sntype = 'II'
-        if subtp == 2: snsubtype = 'P'
-        if subtp == 3: snsubtype = 'pec'
-        if subtp == 4: snsubtype = 'n'
-        if subtp == 5: snsubtype = 'L'
-        else: snsubtype = ''
-    if tp == 5:
+        if subtp == 2: 
+            snsubtype = 'P'
+        if subtp == 3: 
+            snsubtype = 'pec'
+        if subtp == 4: 
+            snsubtype = 'n'
+        if subtp == 5: 
+            snsubtype = 'L'
+        else: 
+            snsubtype = ''
+    elif tp == 5:
         snsubtype = ''
-        if subtp == 1: sntype = 'NotSN'
-        if subtp == 2: sntype = 'AGN'
-        if subtp == 3: sntype = 'Gal'
-        if subtp == 4: sntype = 'LBV'
-        if subtp == 5: sntype = 'M-star'
-        if subtp == 6: sntype = 'QSO'
-        if subtp == 7: sntype = 'C-star'
-        else: sntype = ''
+        if subtp == 1: 
+            sntype = 'NotSN'
+        elif subtp == 2: 
+            sntype = 'AGN'
+        elif subtp == 3: 
+            sntype = 'Gal'
+        elif subtp == 4: 
+            sntype = 'LBV'
+        elif subtp == 5: 
+            sntype = 'M-star'
+        elif subtp == 6: 
+            sntype = 'QSO'
+        if subtp == 7: 
+            sntype = 'C-star'
+        else: 
+            sntype = ''
     return sntype, snsubtype
 
 
