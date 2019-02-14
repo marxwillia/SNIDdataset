@@ -194,5 +194,26 @@ each phase range are included.
     return
 
 
+def getDiagnostics(dataset):
+    snnames = []
+    snphases = []
+    snid_type_pair = []
+    snid_type_str = []
+    snphasetype = []
 
+    for key in dataset.keys():
+        snobj = dataset[key]
+        name = snobj.header['SN']
+        phase = snobj.phases
+        type_pair = (int(snobj.header['TypeInt']), int(snobj.header['SubTypeInt']))
+        type_str = snobj.type + snobj.subtype
+        phtype = snobj.phaseType
+
+        snnames.append(name)
+        snphases.append(phase)
+        snid_type_pair.append(type_pair)
+        snid_type_str.append(type_str)
+        snphasetype.append(phtype)
+ 
+    return snnames, snphases, snid_type_pair, snid_type_str, snphasetype
 
