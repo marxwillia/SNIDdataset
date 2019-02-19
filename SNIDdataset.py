@@ -3,8 +3,18 @@ import numpy as np
 import SNIDsn as snid
 import matplotlib.pyplot as plt
 from collections import OrderedDict
+import pickle
 
+def savePickle(path, dataset):
+    f = open(path, 'wb')
+    pickle.dump(dataset, f)
+    f.close()
+    return
 
+def loadPickle(path):
+    f = open(path, 'rb')
+    d = pickle.load(f)
+    return d
 
 def loadDataset(pathdir, snlist):
     dataset = OrderedDict()

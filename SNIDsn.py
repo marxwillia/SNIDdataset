@@ -67,11 +67,11 @@ Convert tuple type designation from SNID to string.
         sntype = 'II'
         if subtp == 2: 
             snsubtype = 'P'
-        if subtp == 3: 
+        elif subtp == 3: 
             snsubtype = 'pec'
-        if subtp == 4: 
+        elif subtp == 4: 
             snsubtype = 'n'
-        if subtp == 5: 
+        elif subtp == 5: 
             snsubtype = 'L'
         else: 
             snsubtype = ''
@@ -89,7 +89,7 @@ Convert tuple type designation from SNID to string.
             sntype = 'M-star'
         elif subtp == 6: 
             sntype = 'QSO'
-        if subtp == 7: 
+        elif subtp == 7: 
             sntype = 'C-star'
         else: 
             sntype = ''
